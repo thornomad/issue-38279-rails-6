@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+  app:
+    build:
+      context: .
+    working_dir: /app
+    volumes:
+      - .:/app
+      - bundle_path:/bundle
+    depends_on:
+      - postgres
+    environment:
+      - BUNDLE_PATH=/bundle/vendor
+      - DATABASE_URL=postgres://my-api:my-api@postgres
+    ports:
+      - "3000:3000"
+  postgres:
+    image: postgres:11.5-alpine
+    ports:
+      - 5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: my-api
+
+volumes:
+  bundle_path:
+  postgres:
