@@ -1,0 +1,44 @@
+name: Ruby
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.2
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Ruby using .ruby-version
+      uses: eregon/use-ruby-action@master
+
+    - name: Bundle install and yarn
+      run: |
+        bundle install --jobs 4 --retry 3
+        yarn install --check-files
+
+    - name: setup databases
+      env:
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_USER: postgres
+        POSTGRES_PORT: 5432
+        POSTGRES_HOST: localhost
+        RAILS_ENV: test
+      run: bundle exec rake db:setup
+
+    - name: Build and test with Rake
+      run: bundle exec rake
